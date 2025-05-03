@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generate Game Images</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        canvas { border: 1px solid #ccc; margin: 10px; }
+        .image-container { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; }
+        button { padding: 10px; margin: 10px; }
+    </style>
+</head>
+<body>
+    <h1>守护村庄游戏图像生成器</h1>
+    
+    <div class="image-container">
+        <h2>守护者 (guardian.png)</h2>
+        <canvas id="guardianCanvas" width="80" height="80"></canvas>
+        <button onclick="downloadImage('guardianCanvas', 'guardian.png')">下载守护者图像</button>
+    </div>
+    
+    <div class="image-container">
+        <h2>箭矢 (arrow.png)</h2>
+        <canvas id="arrowCanvas" width="16" height="30"></canvas>
+        <button onclick="downloadImage('arrowCanvas', 'arrow.png')">下载箭矢图像</button>
+    </div>
+    
+    <div class="image-container">
+        <h2>怪兽 (monster.png)</h2>
+        <canvas id="monsterCanvas" width="60" height="60"></canvas>
+        <button onclick="downloadImage('monsterCanvas', 'monster.png')">下载怪兽图像</button>
+    </div>
+    
+    <div class="image-container">
+        <h2>村庄 (village.png)</h2>
+        <canvas id="villageCanvas" width="200" height="80"></canvas>
+        <button onclick="downloadImage('villageCanvas', 'village.png')">下载村庄图像</button>
+    </div>
+    
+    <div class="image-container">
+        <h2>防线 (defense_line.png)</h2>
+        <canvas id="defenseLineCanvas" width="300" height="20"></canvas>
+        <button onclick="downloadImage('defenseLineCanvas', 'defense_line.png')">下载防线图像</button>
+    </div>
+    
+    <script>
+        // 绘制守护者图像
+        function drawGuardian() {
+            const canvas = document.getElementById('guardianCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // 清空画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制守护者身体（弓箭手）
+            ctx.fillStyle = '#3498db'; // 蓝色身体
+            ctx.beginPath();
+            ctx.arc(40, 40, 25, 0, Math.PI * 2); // 圆形身体
+            ctx.fill();
+            
+            // 绘制守护者头部
+            ctx.fillStyle = '#f39c12'; // 黄色头部
+            ctx.beginPath();
+            ctx.arc(40, 25, 15, 0, Math.PI * 2); // 圆形头部
+            ctx.fill();
+            
+            // 绘制弓
+            ctx.strokeStyle = '#8b4513'; // 棕色弓
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(40, 40, 20, -Math.PI * 0.75, Math.PI * 0.75, false);
+            ctx.stroke();
+            
+            // 绘制弓弦
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(25, 25);
+            ctx.lineTo(55, 25);
+            ctx.stroke();
+        }
+        
+        // 绘制箭矢图像
+        function drawArrow() {
+            const canvas = document.getElementById('arrowCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // 清空画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制箭杆
+            ctx.fillStyle = '#8b4513'; // 棕色箭杆
+            ctx.fillRect(7, 5, 2, 20);
+            
+            // 绘制箭头
+            ctx.fillStyle = '#c0392b'; // 红色箭头
+            ctx.beginPath();
+            ctx.moveTo(8, 0);
+            ctx.lineTo(16, 10);
+            ctx.lineTo(0, 10);
+            ctx.closePath();
+            ctx.fill();
+            
+            // 绘制尾羽
+            ctx.fillStyle = '#ffffff'; // 白色尾羽
+            ctx.beginPath();
+            ctx.moveTo(8, 25);
+            ctx.lineTo(14, 30);
+            ctx.lineTo(2, 30);
+            ctx.closePath();
+            ctx.fill();
+        }
+        
+        // 绘制怪兽图像
+        function drawMonster() {
+            const canvas = document.getElementById('monsterCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // 清空画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制怪兽身体
+            ctx.fillStyle = '#27ae60'; // 绿色身体
+            ctx.beginPath();
+            ctx.arc(30, 35, 20, 0, Math.PI * 2); // 圆形身体
+            ctx.fill();
+            
+            // 绘制怪兽头部
+            ctx.fillStyle = '#2ecc71'; // 浅绿色头部
+            ctx.beginPath();
+            ctx.arc(30, 20, 15, 0, Math.PI * 2); // 圆形头部
+            ctx.fill();
+            
+            // 绘制怪兽眼睛
+            ctx.fillStyle = '#e74c3c'; // 红色眼睛
+            ctx.beginPath();
+            ctx.arc(23, 18, 4, 0, Math.PI * 2); // 左眼
+            ctx.arc(37, 18, 4, 0, Math.PI * 2); // 右眼
+            ctx.fill();
+            
+            // 绘制怪兽牙齿
+            ctx.fillStyle = '#ffffff'; // 白色牙齿
+            ctx.beginPath();
+            ctx.moveTo(25, 30);
+            ctx.lineTo(28, 35);
+            ctx.lineTo(32, 35);
+            ctx.lineTo(35, 30);
+            ctx.fill();
+        }
+        
+        // 绘制村庄图像
+        function drawVillage() {
+            const canvas = document.getElementById('villageCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // 清空画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制地面
+            ctx.fillStyle = '#8b4513'; // 棕色地面
+            ctx.fillRect(0, 70, 200, 10);
+            
+            // 绘制主房子
+            ctx.fillStyle = '#e67e22'; // 橙色墙壁
+            ctx.fillRect(70, 30, 60, 40);
+            
+            // 绘制屋顶
+            ctx.fillStyle = '#c0392b'; // 红色屋顶
+            ctx.beginPath();
+            ctx.moveTo(60, 30);
+            ctx.lineTo(100, 10);
+            ctx.lineTo(140, 30);
+            ctx.closePath();
+            ctx.fill();
+            
+            // 绘制门
+            ctx.fillStyle = '#6d4c41'; // 深棕色门
+            ctx.fillRect(90, 50, 20, 20);
+            
+            // 绘制窗户
+            ctx.fillStyle = '#f1c40f'; // 黄色窗户
+            ctx.fillRect(75, 40, 10, 10);
+            ctx.fillRect(115, 40, 10, 10);
+            
+            // 绘制小房子1
+            ctx.fillStyle = '#d35400'; // 深橙色墙壁
+            ctx.fillRect(20, 45, 40, 25);
+            
+            // 绘制小房子1屋顶
+            ctx.fillStyle = '#c0392b'; // 红色屋顶
+            ctx.beginPath();
+            ctx.moveTo(15, 45);
+            ctx.lineTo(40, 30);
+            ctx.lineTo(65, 45);
+            ctx.closePath();
+            ctx.fill();
+            
+            // 绘制小房子2
+            ctx.fillStyle = '#d35400'; // 深橙色墙壁
+            ctx.fillRect(140, 45, 40, 25);
+            
+            // 绘制小房子2屋顶
+            ctx.fillStyle = '#c0392b'; // 红色屋顶
+            ctx.beginPath();
+            ctx.moveTo(135, 45);
+            ctx.lineTo(160, 30);
+            ctx.lineTo(185, 45);
+            ctx.closePath();
+            ctx.fill();
+        }
+        
+        // 绘制防线图像
+        function drawDefenseLine() {
+            const canvas = document.getElementById('defenseLineCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // 清空画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制防线基础
+            ctx.fillStyle = '#7f8c8d'; // 灰色基础
+            ctx.fillRect(0, 10, 300, 10);
+            
+            // 绘制防线尖刺
+            const spikeCount = 15;
+            const spikeWidth = 300 / spikeCount;
+            
+            ctx.fillStyle = '#95a5a6'; // 浅灰色尖刺
+            
+            for (let i = 0; i < spikeCount; i++) {
+                ctx.beginPath();
+                ctx.moveTo(i * spikeWidth, 10);
+                ctx.lineTo(i * spikeWidth + spikeWidth / 2, 0);
+                ctx.lineTo((i + 1) * spikeWidth, 10);
+                ctx.closePath();
+                ctx.fill();
+            }
+        }
+        
+        // 下载图像函数
+        function downloadImage(canvasId, filename) {
+            const canvas = document.getElementById(canvasId);
+            const dataURL = canvas.toDataURL('image/png');
+            
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = dataURL;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        // 页面加载时绘制所有图像
+        window.onload = function() {
+            drawGuardian();
+            drawArrow();
+            drawMonster();
+            drawVillage();
+            drawDefenseLine();
+        };
+    </script>
+</body>
+</html>
