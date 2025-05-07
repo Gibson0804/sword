@@ -4,6 +4,7 @@
  */
 import EventEmitter from '../base/eventEmitter';
 import LevelSelectPage from './levelSelectPage';
+import { drawFancyButton } from '../utils/drawFancyButton.js';
 
 const BG_FRAME_COUNT = 7;
 const BG_FRAME_PREFIX = 'images/bg/bg_index';
@@ -12,12 +13,6 @@ const BUTTON_WIDTH = 180;
 const BUTTON_HEIGHT = 70;
 const BUTTON_RADIUS = 18;
 const BUTTON_MARGIN = 28;
-const BUTTON_FONT = 'bold 32px Arial';
-const BUTTON_TEXT_COLOR = '#fff';
-const BUTTON_STROKE_COLOR = '#222';
-const BUTTON_GRADIENT_TOP = '#ffe066';
-const BUTTON_GRADIENT_BOTTOM = '#f7b500';
-const BUTTON_BORDER_COLOR = '#b97a00';
 
 const { screenWidth, screenHeight } = wx.getSystemInfoSync();
 
@@ -303,45 +298,4 @@ export default class StartPage extends EventEmitter {
   hitTest(rect, t) {
     return t.clientX >= rect.x && t.clientX <= rect.x + rect.width && t.clientY >= rect.y && t.clientY <= rect.y + rect.height; // rect和t都用dpr后的坐标
   }
-}
-
-// 按钮样式参考图片（黄底圆角、黑白描边字）
-function drawFancyButton(ctx, x, y, width, height, radius, text) {
-  ctx.save();
-  // 阴影
-  ctx.shadowColor = 'rgba(0,0,0,0.3)';
-  ctx.shadowBlur = 6;
-  ctx.shadowOffsetY = 4;
-  // 渐变
-  const gradient = ctx.createLinearGradient(x, y, x, y + height);
-  gradient.addColorStop(0, BUTTON_GRADIENT_TOP);
-  gradient.addColorStop(1, BUTTON_GRADIENT_BOTTOM);
-  // 圆角矩形
-  ctx.beginPath();
-  ctx.moveTo(x + radius, y);
-  ctx.lineTo(x + width - radius, y);
-  ctx.arcTo(x + width, y, x + width, y + radius, radius);
-  ctx.lineTo(x + width, y + height - radius);
-  ctx.arcTo(x + width, y + height, x + width - radius, y + height, radius);
-  ctx.lineTo(x + radius, y + height);
-  ctx.arcTo(x, y + height, x, y + height - radius, radius);
-  ctx.lineTo(x, y + radius);
-  ctx.arcTo(x, y, x + radius, y, radius);
-  ctx.closePath();
-  ctx.fillStyle = gradient;
-  ctx.fill();
-  // 描边
-  ctx.lineWidth = 3;
-  ctx.strokeStyle = BUTTON_BORDER_COLOR;
-  ctx.stroke();
-  // 文字描边+填充
-  ctx.font = BUTTON_FONT;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.lineWidth = 7;
-  ctx.strokeStyle = BUTTON_STROKE_COLOR;
-  ctx.strokeText(text, x + width / 2, y + height / 2 + 2);
-  ctx.fillStyle = BUTTON_TEXT_COLOR;
-  ctx.fillText(text, x + width / 2, y + height / 2 + 2);
-  ctx.restore();
 }

@@ -12,8 +12,8 @@ export default class DataBus {
   bullets = []; // 存储子弹
   splashes = []; // 存储splash攻击
   animations = []; // 存储动画
+  coinFlies = []; // 存储金币飞行动画
   frame = 0; // 当前帧数
-  score = 0; // 当前分数
   coins = 0; // 当前金币
   level = 1; // 当前关卡
   villageHealth = 100; // 村庄生命值
@@ -31,7 +31,6 @@ export default class DataBus {
   // 重置游戏状态
   reset() {
     this.frame = 0; // 当前帧数
-    this.score = 0; // 当前分数
     this.coins = 0; // 当前金币
     this.level = 1; // 当前关卡
     this.villageHealth = 100; // 村庄生命值
@@ -40,6 +39,7 @@ export default class DataBus {
     this.splashes = []; // 存储splash攻击
     this.monsters = []; // 存储怪兽
     this.animations = []; // 存储动画
+    this.coinFlies = []; // 存储金币飞行动画
     this.isGameOver = false; // 游戏是否结束
   }
 
@@ -64,8 +64,14 @@ export default class DataBus {
    * @param {Object} monster - 要回收的怪兽对象
    */
   removeMonster(monster) {
-    const temp = this.monsters.splice(this.monsters.indexOf(monster), 1);
-    if (temp) {
+    const idx = this.monsters.indexOf(monster);
+    if (idx === -1) {
+      // 已经被移除过了，不再重复移除
+      return;
+    }
+    const temp = this.monsters.splice(idx, 1);
+    if (temp && temp.length > 0) {
+      console.log('[removeMonster] 怪兽被移除:', monster, monster.type, '剩余:', this.monsters.length);
       this.pool.recover('monster', monster); // 回收怪兽到对象池
     }
   }
@@ -93,4 +99,18 @@ export default class DataBus {
       this.pool.recover('splash', splash); // 回收splash攻击到对象池
     }
   }
+
+  removeCoinFly(coinFly) {
+    const idx = this.coinFlies.indexOf(coinFly);
+    if (idx === -1) {
+      // 已经被移除过了，不再重复移除
+      return;
+    }
+    const temp = this.coinFlies.splice(idx, 1);
+    if (temp && temp.length > 0) {
+      console.log('[removeCoinFly] 金币飞行动画被移除:', coinFly, '剩余:', this.coinFlies.length);
+      this.pool.recover('coinFly', coinFly); // 回收金币飞行动画到对象池
+    }
+  }
+
 }

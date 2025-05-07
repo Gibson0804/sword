@@ -8,7 +8,7 @@ export default class GameInfo extends Emitter {
   showVictory = false;
   _winDialogBtns = [
     { key: 'next', text: '进入下一关' },
-    { key: 'back', text: '返回' }
+    { key: 'back', text: '确定' }
   ];
   _winDialogBtnRects = [];
   constructor() {
@@ -128,111 +128,33 @@ export default class GameInfo extends Emitter {
 
   renderGameInfo(ctx) {
     this.setFont(ctx);
-    
-    // 绘制当前分数
-    ctx.fillStyle = '#ffffff';
-    ctx.fillText(`分数: ${GameGlobal.databus.score}`, 10, 30);
-
+    // --- 只保留金币、怪兽数量、波数 ---
     // 绘制金币图标和数量
-    // 返回按钮y=40，高40，金币图标从y=90开始（40+40+10）
-    const coinY = 90;
+    const coinY = 100;
     if (!this.coinImg) {
       this.coinImg = wx.createImage();
       this.coinImg.src = 'images/ui/coin.png';
     }
     ctx.drawImage(this.coinImg, 10, coinY, 28, 28);
     ctx.font = '22px Arial';
-    // 先描边再填充，提升可读性
+    // coins 显示修正，确保为数字
+    let coins = Number(GameGlobal.databus.coins);
+    if (isNaN(coins)) coins = 0;
     ctx.strokeStyle = '#000';
     ctx.lineWidth = 3;
-    ctx.strokeText(`${GameGlobal.databus.coins}`, 45, coinY + 20);
+    ctx.strokeText(`${coins}`, 45, coinY + 20);
     ctx.fillStyle = '#ff4500';
-    ctx.fillText(`${GameGlobal.databus.coins}`, 45, coinY + 20);
+    ctx.fillText(`${coins}`, 45, coinY + 20);
+
+    // 绘制怪兽数量
     ctx.font = '20px Arial';
     ctx.fillStyle = '#ffffff';
-    // 绘制当前关卡
-    ctx.fillText(`关卡: ${GameGlobal.databus.level}`, 10, 100);
-    
-    // 绘制村庄生命值
-    const villageHealth = Math.max(0, GameGlobal.databus.villageHealth);
-    const villageHealthPercent = Math.floor((villageHealth / 100) * 100);
-    
-    // 根据生命值百分比改变颜色
-    if (villageHealthPercent > 60) {
-      ctx.fillStyle = '#00FF00'; // 绿色
-    } else if (villageHealthPercent > 30) {
-      ctx.fillStyle = '#FFFF00'; // 黄色
-    } else {
-      ctx.fillStyle = '#FF0000'; // 红色
-    }
-    
-    ctx.fillText(`村庄: ${villageHealthPercent}%`, 10, 90);
-    
-    // 绘制防线生命值
-    const defenseHealth = Math.max(0, GameGlobal.databus.defenseLineHealth);
-    const defenseHealthPercent = Math.floor((defenseHealth / 100) * 100);
-    
-    // 根据生命值百分比改变颜色
-    if (defenseHealthPercent > 60) {
-      ctx.fillStyle = '#00FF00'; // 绿色
-    } else if (defenseHealthPercent > 30) {
-      ctx.fillStyle = '#FFFF00'; // 黄色
-    } else {
-      ctx.fillStyle = '#FF0000'; // 红色
-    }
-    
-    ctx.fillText(`防线: ${defenseHealthPercent}%`, 10, 120);
-    
-    // 绘制怪兽数量
-    ctx.fillStyle = '#ffffff';
-    ctx.fillText(`怪兽: ${GameGlobal.databus.monsters.length}`, 10, 150);
+    ctx.fillText(`怪兽: ${GameGlobal.databus.monsters.length}`, 10, coinY + 50);
     // 显示当前波数
     if (GameGlobal.databus.currentWave && GameGlobal.databus.totalWave) {
       ctx.fillStyle = '#00eaff';
-      ctx.fillText(`第${GameGlobal.databus.currentWave}/${GameGlobal.databus.totalWave}波`, 10, 180);
+      ctx.fillText(`第${GameGlobal.databus.currentWave}/${GameGlobal.databus.totalWave}波`, 10, coinY + 80);
     }
-    
-    // 绘制特殊能力信息
-    this.renderAbilityInfo(ctx);
-  }
-  
-  // 绘制特殊能力信息
-  renderAbilityInfo(ctx) {
-    // 如果游戏结束则不显示
-    if (GameGlobal.databus.isGameOver) return;
-    
-    const player = GameGlobal.player; // 假设我们在Main类中设置了全局玩家对象
-    if (!player) return;
-    
-    // 获取当前选中的特殊能力
-    const currentAbility = player.abilities[player.currentAbilityIndex];
-    
-    // 绘制背景
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-    ctx.fillRect(SCREEN_WIDTH - 160, 10, 150, 80);
-    
-    // 绘制标题
-    ctx.fillStyle = '#ffffff';
-    ctx.fillText('当前技能', SCREEN_WIDTH - 150, 30);
-    
-    // 绘制技能名称
-    ctx.fillText(currentAbility.name, SCREEN_WIDTH - 150, 50);
-    
-    // 绘制技能状态
-    if (currentAbility.available) {
-      ctx.fillStyle = '#00FF00'; // 绿色表示可用
-      ctx.fillText('可用 (双击使用)', SCREEN_WIDTH - 150, 70);
-    } else {
-      // 计算冷却时间
-      const cooldownSeconds = Math.ceil(currentAbility.currentCooldown / 60);
-      ctx.fillStyle = '#FF0000'; // 红色表示冷却中
-      ctx.fillText(`冷却中 (${cooldownSeconds}s)`, SCREEN_WIDTH - 150, 70);
-    }
-    
-    // 绘制提示
-    ctx.fillStyle = '#cccccc';
-    ctx.font = '12px Arial';
-    ctx.fillText('长按切换技能', SCREEN_WIDTH - 150, 85);
   }
 
   renderGameOver(ctx, score) {

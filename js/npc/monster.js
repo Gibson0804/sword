@@ -1,6 +1,7 @@
 import Animation from '../base/animation';
 import { SCREEN_WIDTH, SCREEN_HEIGHT } from '../render';
 import monstersConfig from '../config/monsters';
+import Coinfly from '../runtime/coinfly';
 
 const EXPLO_IMG_PREFIX = 'images/explosion';
 
@@ -77,6 +78,7 @@ export default class Monster extends Animation {
     // 启动动画自动播放
     this.playAnimation(0, true);
     // 可根据 frame 做特殊处理
+
   }
 
   /**
@@ -109,13 +111,6 @@ export default class Monster extends Animation {
   }
 
   /**
-   * 随机生成X坐标，怪兽从上方生成
-   */
-  getRandomX() {
-    return Math.random() * (SCREEN_WIDTH - (this.width || 40));
-  }
-
-  /**
    * 设置爆炸动画（可扩展）
    */
   initExplosionAnimation() {
@@ -142,9 +137,9 @@ export default class Monster extends Animation {
 
   // 生成随机 X 坐标
   getRandomX() {
-    // 优先用怪兽自身宽度，没有则默认40
-    const width = this.config?.width || 40;
-    return Math.floor(Math.random() * (SCREEN_WIDTH - width));
+    const width = SCREEN_WIDTH * 0.3;
+    let x = Math.random() * (SCREEN_WIDTH - width) + width * 0.5;
+    return x;
   }
 
   // 预定义爆炸的帧动画
@@ -159,16 +154,16 @@ export default class Monster extends Animation {
 
   // 每一帧更新怪兽位置
   update() {
-    if (GameGlobal.databus.isGameOver) {
-      return;
-    }
 
-    // 死亡怪兽兜底回收：如果已死亡但还未被回收，立即回收
-    if (!this.isAlive && this.isActive) {
-      this.remove();
-      return;
-    }
+    // // 死亡怪兽兜底回收：如果已死亡但还未被回收，立即回收
+    // if (!this.isAlive && this.isActive) {
+    //   this.remove();
+    //   return;
+    // }
 
+    // if (GameGlobal.databus.isGameOver) {
+    //   return;
+    // }
     // 检查是否需要冲刺
     this.checkSprint();
     
@@ -281,17 +276,36 @@ export default class Monster extends Animation {
   }
 
   destroy() {
-    this.isActive = false;
-    this.isAlive = false;
-    // 立即消失，不播放动画
-    this.visible = false;
+
+
+
+    // 生成金币飞行动画
+    if (!GameGlobal.databus.coinFlies) GameGlobal.databus.coinFlies = [];
+    // 怪兽中心点
+    const startX = this.x + this.width / 2;
+    const startY = this.y + this.height / 2;
+    // 金币目标点（页面金币文案处，约定为固定坐标）
+    const endX = 54, endY = 120; // 与gameinfo.js金币文案位置对应
+
+    const coinFlyNew = GameGlobal.databus.pool.getItemByClass('coinFly', Coinfly);
+    coinFlyNew.init(startX, startY, endX, endY, this.score);
+    coinFlyNew.onArrive = () => {
+      GameGlobal.databus.removeCoinFly(coinFlyNew);
+    };
+    GameGlobal.databus.coinFlies.push(coinFlyNew);
+
+    GameGlobal.databus.coins += this.score;
+
     GameGlobal.musicManager.playExplosion();
     this.remove();
   }
 
   remove() {
     this.isActive = false;
+    this.isAlive = false;
+    // 立即消失，不播放动画
     this.visible = false;
+    this.stopAnimation();
     GameGlobal.databus.removeMonster(this);
   }
   
@@ -299,9 +313,8 @@ export default class Monster extends Animation {
    * 渲染怪兽和血条
    */
   render(ctx) {
-    // 怪兽死亡时只显示爆炸动画，不再显示血条
-    if (!this.isAlive) {
-      this.aniRender(ctx);
+    // 死亡或不可见时不渲染任何内容
+    if (!this.isAlive || !this.isActive || !this.visible) {
       return;
     }
     this.aniRender(ctx);

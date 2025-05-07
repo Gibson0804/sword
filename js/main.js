@@ -9,56 +9,7 @@ import DefenseLine from './runtime/defenseLine';
 import BackGround from './runtime/background';
 import GameInfo from './runtime/gameinfo';
 import Music from './runtime/music';
-
-// 首页按钮样式常量和绘制函数（与startPage.js保持一致）
-const BUTTON_RADIUS = 18;
-const BUTTON_FONT = 'bold 20px Arial';
-const BUTTON_TEXT_COLOR = '#fff';
-const BUTTON_STROKE_COLOR = '#222';
-const BUTTON_GRADIENT_TOP = '#ffe066';
-const BUTTON_GRADIENT_BOTTOM = '#f7b500';
-const BUTTON_BORDER_COLOR = '#b97a00';
-
-function drawFancyButton(ctx, x, y, width, height, radius, text) {
-  ctx.save();
-  // 阴影
-  ctx.shadowColor = 'rgba(0,0,0,0.3)';
-  ctx.shadowBlur = 6;
-  ctx.shadowOffsetY = 4;
-  // 渐变
-  const gradient = ctx.createLinearGradient(x, y, x, y + height);
-  gradient.addColorStop(0, BUTTON_GRADIENT_TOP);
-  gradient.addColorStop(1, BUTTON_GRADIENT_BOTTOM);
-  // 圆角矩形
-  ctx.beginPath();
-  ctx.moveTo(x + radius, y);
-  ctx.lineTo(x + width - radius, y);
-  ctx.arcTo(x + width, y, x + width, y + radius, radius);
-  ctx.lineTo(x + width, y + height - radius);
-  ctx.arcTo(x + width, y + height, x + width - radius, y + height, radius);
-  ctx.lineTo(x + radius, y + height);
-  ctx.arcTo(x, y + height, x, y + height - radius, radius);
-  ctx.lineTo(x, y + radius);
-  ctx.arcTo(x, y, x + radius, y, radius);
-  ctx.closePath();
-  ctx.fillStyle = gradient;
-  ctx.fill();
-  // 描边
-  ctx.lineWidth = 3;
-  ctx.strokeStyle = BUTTON_BORDER_COLOR;
-  ctx.stroke();
-  // 文字描边+填充
-  ctx.font = BUTTON_FONT;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.lineWidth = 7;
-  ctx.strokeStyle = BUTTON_STROKE_COLOR;
-  ctx.strokeText(text, x + width / 2, y + height / 2 + 2);
-  ctx.fillStyle = BUTTON_TEXT_COLOR;
-  ctx.fillText(text, x + width / 2, y + height / 2 + 2);
-  ctx.restore();
-}
-
+import { drawFancyButton } from './utils/drawFancyButton.js';
 import DataBus from './databus';
 
 // 游戏状态常量
@@ -124,10 +75,11 @@ export default class Main {
   difficultyIncreaseInterval = 1000; // 每1000帧增加一次难度
   gameState = GAME_STATE.START_PAGE; // 初始游戏状态为首页
   currentLevelId = 1; // 当前关卡ID
-  currentSkillId = 'clearScreen'; // 当前技能ID
+  _lastVictoryState = null;
 
   constructor() {
-    // ...原有内容...
+
+    GameGlobal.main = this; // 保存主游戏实例
     this.gameInfo.on('nextLevel', () => {
       const nextLevelId = this.currentLevelId + 1;
       try {
@@ -159,8 +111,6 @@ export default class Main {
 
     // 初始化游戏，显示首页
     this.init();
-
-
   }
 
   /**
@@ -169,6 +119,7 @@ export default class Main {
   init() {
     // 重置游戏数据
     GameGlobal.databus.reset();
+    this.gameInfo.setVictory(false); // 强制关闭胜利弹窗
     
     // 初始化游戏对象
     this.player.init();
@@ -254,7 +205,6 @@ export default class Main {
     // 保存当前选择的关卡和技能
     if (options) {
       this.currentLevelId = options.levelId || (levelConfig && levelConfig.id) || 1;
-      this.currentSkillId = options.skillId || 'clearScreen';
     }
     // 兼容处理：如果没有 monsterConfig，但有 monsterTypes，则自动生成默认波次
     if (levelConfig && !levelConfig.monsterConfig && levelConfig.monsterTypes) {
@@ -277,10 +227,9 @@ export default class Main {
     } else {
       this.monsterGenerateInterval = MONSTER_GENERATE_INTERVAL;
     }
-    // 设置当前技能
-    this.player.setCurrentSkill(this.currentSkillId);
     // 重置游戏状态
     GameGlobal.databus.reset();
+    this.gameInfo.setVictory(false); // 强制关闭胜利弹窗
     this.player.init();
     this.village.init();
     this.defenseLine.init();
@@ -316,6 +265,7 @@ export default class Main {
   restart() {
     // 重置游戏状态
     GameGlobal.databus.reset();
+    this.gameInfo.setVictory(false); // 强制关闭胜利弹窗
     this.player.init();
     this.village.init();
     this.defenseLine.init();
@@ -371,6 +321,7 @@ export default class Main {
       const monsterType = monsterTypes[Math.floor(Math.random() * monsterTypes.length)];
       const monster = GameGlobal.databus.pool.getItemByClass('monster', Monster);
       monster.init(monsterType, 1, GameGlobal.databus.frame);
+      console.log('monster init', monsterType, monster.visible);
       GameGlobal.databus.monsters.push(monster);
       this._waveMonsterGenerated++;
 
@@ -393,8 +344,6 @@ export default class Main {
           
           if (!monster.isAlive) {
             monster.destroy(); // 销毁怪兽
-            GameGlobal.databus.score += monster.scoreValue; // 增加分数
-            GameGlobal.databus.coins += monster.scoreValue; // 增加金币
           }
           break; // 退出循环
         }
@@ -445,6 +394,7 @@ export default class Main {
    * 每一帧重新绘制所有内容
    */
   render() {
+
     // 清空画布
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
@@ -471,10 +421,22 @@ export default class Main {
         item.render(ctx);
       });
       
+      // 渲染 splash 攻击
+      GameGlobal.databus.splashes.forEach((item) => {
+        item.render(ctx);
+      });
+      
       // 渲染爆炸动画
       GameGlobal.databus.animations.forEach((item) => {
         item.render(ctx);
       });
+
+      // 渲染金币飞行动画
+      GameGlobal.databus.coinFlies && GameGlobal.databus.coinFlies.forEach((item) => {
+        item.render(ctx);
+      });
+
+
       
       // 渲染游戏信息
       this.gameInfo.render(ctx);
@@ -504,13 +466,24 @@ export default class Main {
       this.backButton.y,
       this.backButton.width,
       this.backButton.height,
-      BUTTON_RADIUS,
+      18,
       this.backButton.text
     );
   }
 
   // 游戏逻辑更新主函数
   update() {
+    // 更新金币飞行动画
+    if (GameGlobal.databus.coinFlies) {
+      for (let i = GameGlobal.databus.coinFlies.length - 1; i >= 0; i--) {
+        const coinFly = GameGlobal.databus.coinFlies[i];
+        coinFly.update();
+        if (!coinFly.isActive) {
+          GameGlobal.databus.coinFlies.splice(i, 1);
+        }
+      }
+    }
+
     // 根据游戏状态更新不同内容
     if (this.gameState === GAME_STATE.START_PAGE) {
       // 首页状态，不需要更新游戏逻辑
@@ -528,9 +501,6 @@ export default class Main {
       return;
     }
 
-    // 检查是否需要升级
-    this.checkLevelUp();
-
     this.player.update(); // 更新玩家
     this.village.update(); // 更新村庄
     this.defenseLine.update(); // 更新防线
@@ -546,65 +516,24 @@ export default class Main {
     this.collisionDetection(); // 检测碰撞
 
     // 检查胜利：所有怪兽消灭且所有波次已生成
-    if (
+    const isVictory = (
       this.gameState === GAME_STATE.PLAYING &&
       GameGlobal.databus.monsters.length === 0 &&
       this._currentWaveIndex === this.currentLevelConfig.monsterConfig.length - 1 &&
       this._waveMonsterGenerated >= this._waveMonsterTotal
-    ) {
-      this.gameInfo.setVictory(true);
-    } else {
-      this.gameInfo.setVictory(false);
-    }
-  }
-
-  /**
-   * 检查是否需要升级
-   * 每得到一定分数升级一次
-   */
-  checkLevelUp() {
-    // 每获得200分升级一次
-    const shouldLevelUp = Math.floor(GameGlobal.databus.score / 200) + 1;
-    
-    if (shouldLevelUp > GameGlobal.databus.level) {
-      // 升级
-      GameGlobal.databus.level = shouldLevelUp;
-      GameGlobal.databus.levelUp();
-      
-      // 升级玩家
-      this.player.upgrade();
-      
-      // 升级效果
-      GameGlobal.musicManager.playLevelUp();
-      wx.vibrateShort({
-        type: 'heavy'
+    );
+    if (this._lastVictoryState !== isVictory) {
+      console.log('[胜利判定]', isVictory ? '胜利条件达成！' : '胜利条件被取消', {
+        monsters: GameGlobal.databus.monsters.length,
+        _currentWaveIndex: this._currentWaveIndex,
+        waveCount: this.currentLevelConfig.monsterConfig.length,
+        _waveMonsterGenerated: this._waveMonsterGenerated,
+        _waveMonsterTotal: this._waveMonsterTotal
       });
-      
-      // 降低怪兽生成间隔，增加难度
-      this.monsterGenerateInterval *= 0.9;
-      if (this.monsterGenerateInterval < MIN_MONSTER_GENERATE_INTERVAL) {
-        this.monsterGenerateInterval = MIN_MONSTER_GENERATE_INTERVAL;
-      }
-      
-      // 检查是否完成当前关卡，解锁下一关
-      const currentLevel = this.startPage.getCurrentLevel();
-      if (currentLevel && GameGlobal.databus.score >= currentLevel.monsterCount * 10) {
-        // 解锁下一关
-        const nextLevelId = this.currentLevelId + 1;
-        const unlockedLevels = wx.getStorageSync('unlockedLevels') || [1];
-        
-        if (!unlockedLevels.includes(nextLevelId)) {
-          unlockedLevels.push(nextLevelId);
-          wx.setStorageSync('unlockedLevels', unlockedLevels);
-          
-          // 显示提示
-          wx.showToast({
-            title: `解锁了第${nextLevelId}关`,
-            icon: 'success',
-            duration: 2000
-          });
-        }
-      }
+      this._lastVictoryState = isVictory;
+    }
+    if (isVictory) {
+      this.gameInfo.setVictory(true);
     }
   }
 

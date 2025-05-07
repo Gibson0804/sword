@@ -17,49 +17,7 @@ const MONSTER_ICON_SIZE = 44;
 const REWARD_ICON_SIZE = 32;
 const Q_BG_COLOR = '#ffe5f7';
 
-function drawFancyButton(ctx, x, y, width, height, radius, text, style = 'normal') {
-  ctx.save();
-  ctx.shadowColor = 'rgba(0,0,0,0.2)';
-  ctx.shadowBlur = 6;
-  ctx.shadowOffsetY = 4;
-  let grad;
-  if (style === 'current') {
-    grad = ctx.createLinearGradient(x, y, x, y + height);
-    grad.addColorStop(0, '#6ee7b7'); // 绿色渐变
-    grad.addColorStop(1, '#34d399');
-    ctx.strokeStyle = '#059669';
-  } else if (style === 'selected') {
-    grad = ctx.createLinearGradient(x, y, x, y + height);
-    grad.addColorStop(0, '#e0aaff'); // 紫色渐变
-    grad.addColorStop(1, '#b983ff');
-    ctx.strokeStyle = '#9d4edd';
-  } else {
-    grad = ctx.createLinearGradient(x, y, x, y + height);
-    grad.addColorStop(0, '#ffe066');
-    grad.addColorStop(1, '#f7b500');
-    ctx.strokeStyle = '#b97a00';
-  }
-  ctx.fillStyle = grad;
-  ctx.lineWidth = 4;
-  ctx.beginPath();
-  ctx.moveTo(x + radius, y);
-  ctx.arcTo(x + width, y, x + width, y + height, radius);
-  ctx.arcTo(x + width, y + height, x, y + height, radius);
-  ctx.arcTo(x, y + height, x, y, radius);
-  ctx.arcTo(x, y, x + width, y, radius);
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
-  ctx.font = 'bold 30px Arial';
-  ctx.fillStyle = '#fff';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.strokeStyle = '#222';
-  ctx.lineWidth = 2;
-  ctx.strokeText(text, x + width / 2, y + height / 2);
-  ctx.fillText(text, x + width / 2, y + height / 2);
-  ctx.restore();
-}
+import { drawFancyButton } from '../utils/drawFancyButton.js';
 
 export default class LevelSelectPage extends EventEmitter {
   constructor() {

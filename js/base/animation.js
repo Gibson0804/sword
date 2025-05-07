@@ -52,7 +52,6 @@ export default class Animation extends Sprite {
 
   // 播放预定的帧动画
   playAnimation(index = 0, loop = false) {
-    this.visible = false; // 动画播放时隐藏精灵图
     this.isPlaying = true;
     this.loop = loop;
     this.index = index;
